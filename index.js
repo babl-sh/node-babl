@@ -34,7 +34,7 @@ module.exports = (function() {
     return new Promise(function(resolve, reject) {
       waitForSocket
         .call(self)
-        .then(sendPayload)
+        .then(sendPayload.bind(self))
         .then(resolve)
         .catch(reject);
     });
@@ -95,6 +95,7 @@ module.exports = (function() {
 
   function sendPayload(babl) {
     var response = new Buffer('');
+    var self = this;
 
     return new Promise(function(resolve, reject) {
       var socket = net.connect({ path: process.env.QUARTZ_SOCKET }, function() {
@@ -112,7 +113,7 @@ module.exports = (function() {
 
       socket.on('error', reject);
 
-      socket.on('close', process.exit.bind(process));
+      socket.on('close', self.process.kill.bind(self.process));
     });
   }
 
