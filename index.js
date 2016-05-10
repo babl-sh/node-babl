@@ -5,6 +5,7 @@ var path = require('path');
 var Promise = require('bluebird');
 var spawn = require('child_process').spawn;
 var stat = Promise.promisify(require('fs').stat);
+var utils = require('./utils');
 
 
 module.exports = (function() {
@@ -26,15 +27,23 @@ module.exports = (function() {
   Babl.binPath = function() {
     var platform = (process.platform.match(/(darwin|linux)/) || []).pop();
     var filename = 'babl-rpc_' + platform + '_amd64';
+
     return path.resolve(__dirname, './bin/' + filename);
   };
 
   Babl.prototype.call = function() {
     var self = this;
+
     return new Promise(function(resolve, reject) {
-      waitForSocket
-        .call(self)
-        .then(sendPayload.bind(self))
+      utils
+        .retry(function() {
+          return stat(process.env.QUARTZ_SOCKET);
+        }, 1, {
+          if: function(reason) { return reason.code === 'ENOENT'; }
+        })
+        .timeout(10000)
+        .then(function() { return self; })
+        .then(utils.dispatch)
         .then(resolve)
         .catch(reject);
     });
@@ -63,59 +72,6 @@ module.exports = (function() {
       Env: (!_.isEmpty(this.env) && this.env) || null,
     }
   };
-
-  // private
-
-  function waitForSocket() {
-    var self = this;
-    var retries = 0;
-    var maxRetries = 10;
-    var delay = 1;
-
-    function retry(resolve, reject, lastError) {
-      if (lastError.code === 'ENOENT' && ++retries <= maxRetries) {
-        setTimeout(wait, delay * Math.pow(2, retries), resolve, reject);
-      } else {
-        reject(lastError);
-      }
-    }
-
-    function wait(resolve, reject) {
-      stat(process.env.QUARTZ_SOCKET)
-        .then(function() {
-          resolve(self);
-        })
-        .catch(function(error) {
-          retry(resolve, reject, error);
-        });
-    }
-
-    return new Promise(wait);
-  };
-
-  function sendPayload(babl) {
-    var response = new Buffer('');
-    var self = this;
-
-    return new Promise(function(resolve, reject) {
-      var socket = net.connect({ path: process.env.QUARTZ_SOCKET }, function() {
-        socket.write(babl.toJSON());
-      });
-
-      socket.on('data', function(data) {
-        response = Buffer.concat([response, data]);
-        data.slice(-1).toString() === '\n' && socket.end();
-      });
-
-      socket.on('end', function() {
-        resolve(response);
-      });
-
-      socket.on('error', reject);
-
-      socket.on('close', self.process.kill.bind(self.process));
-    });
-  }
 
   return Babl;
 })();
