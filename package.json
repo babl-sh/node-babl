@@ -1,0 +1,26 @@
+{
+  "name": "node-babl",
+  "version": "1.0.0",
+  "description": "Access Babl Network from Node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mondoreale/node-babl.git"
+  },
+  "keywords": [
+    "babl"
+  ],
+  "author": "Mariusz Roliński <mariusz@mariusz.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mondoreale/node-babl/issues"
+  },
+  "homepage": "https://github.com/mondoreale/node-babl#readme",
+  "dependencies": {
+    "bluebird": "^3.3.5",
+    "lodash": "^4.12.0"
+  }
+}
