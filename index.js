@@ -15,10 +15,9 @@ module.exports = (function() {
     this.stdin = params.stdin;
     this.env = params.env;
     this.seed = crypto.randomBytes(16).toString('hex');
-    this.endpoint = params.endpoint;
 
     process.env.QUARTZ_SOCKET = '/tmp/quartz_' + this.seed + '.sock';
-    this.process = spawn(Babl.binPath(), this.binParams());
+    this.process = spawn(Babl.binPath());
   };
 
   Babl.module = function(name, params) {
@@ -48,14 +47,6 @@ module.exports = (function() {
         .then(resolve)
         .catch(reject);
     });
-  };
-
-  Babl.prototype.binParams = function() {
-    var result = [];
-    if (this.endpoint) {
-      result.push('-endpoint', this.endpoint);
-    }
-    return result;
   };
 
   Babl.prototype.payload = function() {
