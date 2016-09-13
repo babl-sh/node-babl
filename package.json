@@ -21,6 +21,7 @@
   "homepage": "https://github.com/babl-sh/node-babl#readme",
   "dependencies": {
     "bluebird": "^3.3.5",
-    "lodash": "^4.12.0"
+    "lodash": "^4.12.0",
+    "request": "^2.74.0"
   }
 }

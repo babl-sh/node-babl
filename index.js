@@ -6,6 +6,7 @@ var Promise = require('bluebird');
 var spawn = require('child_process').spawn;
 var stat = Promise.promisify(require('fs').stat);
 var utils = require('./utils');
+var request = require('request');
 
 
 module.exports = (function() {
@@ -22,7 +23,38 @@ module.exports = (function() {
   };
 
   Babl.module = function(name, params) {
+    return new Babl(name, params)
+      .call()
+      .then(Babl.fetchPayload)
+      .then(JSON.stringify)
+      .then(Buffer.from);
+  };
+
+  Babl.call = function(name, params) {
     return new Babl(name, params).call();
+  };
+
+  Babl.fetchPayload = function(buffer) {
+    return new Promise(function(resolve, reject) {
+      var obj = JSON.parse(buffer);
+      var result = obj.result;
+
+      if (result.PayloadUrl) {
+        request({
+          url: result.PayloadUrl,
+          method: 'get',
+        }, function(error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            result.Stdout = Buffer.from(body).toString('base64');
+            resolve(obj);
+          }
+        })
+      } else {
+        resolve(obj);
+      }
+    });
   };
 
   Babl.binPath = function() {
