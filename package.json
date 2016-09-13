@@ -1,6 +1,6 @@
 {
   "name": "node-babl",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Access Babl Network from Node",
   "main": "index.js",
   "scripts": {
